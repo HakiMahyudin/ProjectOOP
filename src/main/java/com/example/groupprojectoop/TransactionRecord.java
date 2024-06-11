@@ -47,4 +47,9 @@ public class TransactionRecord {
         this.note = note;
     }
 
+    @Override
+    public String toString(){
+        return String.format("%s,%s,%s,%s",this.value,this.category,this.date,this.note);
+
+    }
 }

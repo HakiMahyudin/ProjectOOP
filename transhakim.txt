@@ -1,3 +1,2 @@
-9000.0,Food,2024-06-10,ikan
-10000.0,Entertainment,2024-06-03,wayang
-100.0,Bills,2024-06-11,Api
+1111.0,Food,2024-05-31,ikan
+100.0,Bills,2024-06-13,water

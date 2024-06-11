@@ -5,7 +5,6 @@
 
 package com.example.groupprojectoop;
 
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -18,28 +17,26 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Main extends Application {
     private Scene scene;
-    private final Image icon = new Image("file:///C:/Users/SAFWAN/Desktop/DEGREE/YEAR%201/SEM%201/ELEMENT%20OF%20PROGRAMMING/GroupProject/src/image/icon.jpeg");
+    private final Image icon = new Image("file:///C:\\Users\\Izzat\\ProjectOOP\\src\\main\\resources\\Images\\icon.jpeg");
+    Image backgroundImg= new Image(getClass().getResourceAsStream("/Images/Background.jpg"));
     private final Alert msg = new Alert(Alert.AlertType.NONE);
+    private static String FILE_PATH = null;
     private String password;
 
 
@@ -145,7 +142,7 @@ public class Main extends Application {
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!passwordValidator.isValidPassword(newValue)) {
                 // Display error message to user
-                System.out.println("Invalid password. Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one digit, and one special character.");
+                System.out.println("Invalid password. Password must be at least 8 characters long.");
             }
         });
 
@@ -163,7 +160,7 @@ public class Main extends Application {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Invalid Password");
                 alert.setHeaderText("Password is not valid");
-                alert.setContentText("Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one digit, and one special character.");
+                alert.setContentText("Password must be at least 8 characters long.");
                 alert.showAndWait();
 
             }else {
@@ -182,11 +179,12 @@ public class Main extends Application {
     }
 
     private VBox createSidePanel(Stage stage) {
+        AnalysisWindows analysis = new AnalysisWindows();
         Button dashboardButton = createButton("Dashboard", 100, e -> goMainPage(stage));
-        Button analysisButton = createButton("Analysis", 100, e -> showAnalysisWindows ());
+        Button analysisButton = createButton("Analysis", 100, e -> analysis.showAnalysisWindows());
         Button categoriesButton = createButton("Categories", 100, e -> showInfoMessage("Categories clicked"));
 
-        VBox sidePanel = new VBox(10, dashboardButton, analysisButton, categoriesButton);
+        VBox sidePanel = new VBox(10, analysisButton);
         sidePanel.setAlignment(Pos.CENTER_LEFT);
 
         return sidePanel;
@@ -195,7 +193,7 @@ public class Main extends Application {
     private void goMainPage(Stage stage) {
         Login login = new Login();
         BudgetPlanning budget = new BudgetPlanning(login.getName());
-        Dashboard dashboard = new Dashboard();
+        Dashboard dashboard = new Dashboard(login.getName());
 
         Label welcome = createLabel("Hi " + login.getName() + ", Welcome to MyMoney", 20);
         welcome.setAlignment(Pos.TOP_CENTER);
@@ -240,8 +238,7 @@ public class Main extends Application {
         root.setTop(topDisplay);
         root.setCenter(dataBox);
         root.setBottom(buttonPane);
-        Image image = new Image(getClass().getResourceAsStream("/Images/ESO-VLT-Laser-phot-33a-07 (1).jpg"));
-        BackgroundImage backgroundImage = new BackgroundImage(image,
+        BackgroundImage backgroundImage = new BackgroundImage(backgroundImg,
                 BackgroundRepeat.NO_REPEAT,
                 BackgroundRepeat.NO_REPEAT,
                 BackgroundPosition.DEFAULT,
@@ -355,50 +352,147 @@ public class Main extends Application {
     private void setBudget(Stage stage) {
         BudgetPlanning budget = new BudgetPlanning();
 
-        // Create UI elements
-        Label categoryLabel = createLabel("Category:", 15, 75);
-        ComboBox<String> categoryComboBox = new ComboBox<>();
-        categoryComboBox.getItems().addAll(budget.categories);
-        categoryComboBox.setMinWidth(100);
+        //TextField for budgetInput
+        TextField budgetInputTF = new TextField();
+        budgetInputTF.setMaxWidth(230);
+        budgetInputTF.setDisable(true);
+        Label categoriesLbl = createLabel("Choose categories", 15);
+        //combo box categories
+        ComboBox<String> categoriesCB = new ComboBox<>();
+        categoriesCB.setMinWidth(300);
+        categoriesCB.getItems().addAll(budget.categories);
+        categoriesCB.setOnAction(e -> {
+            budgetInputTF.setText(budget.showRecentInput(categoriesCB.getValue()));
+        });
 
-        Label budgetLabel = createLabel("Budget: ", 15, 50);
-        TextField budgetField = createTextField(100);
+        //title
+        Text title = new Text("Plan your budget");
+        title.setFont(Font.font( "Verdana", FontWeight.BOLD,25));
 
-        Label periodLabel = createLabel("Period: ", 15, 50);
-        ComboBox<String> periodComboBox = new ComboBox<>();
-        periodComboBox.getItems().addAll("Monthly", "Weekly"); // Add options for budget periods
-        periodComboBox.setMinWidth(100);
+        //total budget
+        Label totalBudgetLbl = createLabel("Total amount:  RM", 11);
+        TextField totalBudgetTf = new TextField();
+        totalBudgetTf.setEditable(false);
+        //Label for budgetInput
+        Label budgetInputLBL = createLabel("Enter your budget amount:", 11);
 
-        Button setBudgetButton = createButton("Set Budget", 100, e -> {
-            try {
-                double budgetAmount = Double.parseDouble(budgetField.getText());
-                String category = categoryComboBox.getValue();
-                String period = periodComboBox.getValue(); // Get selected period
-                String result = budget.setBudget(budgetAmount, category, period);
+        //budgetInput when key is pressed
+        budgetInputTF.setOnKeyPressed(e -> {
+            totalBudgetTf.setText(budget.setBudget(e, categoriesCB.getValue().toLowerCase()));
+        });
+
+        //label for budget period
+        Label periodLbl = createLabel("Budget Period:", 15 );
+
+        //radio button weekly and monthly
+        RadioButton weeklyBtn = new RadioButton("weekly");
+        weeklyBtn.setFont(Font.font(13));
+        weeklyBtn.setOnAction(e -> {
+            budget.setMultiplier(4);
+            budgetInputTF.setDisable(false);
+
+        });
+        RadioButton monthlyBtn = new RadioButton("monthly");
+        monthlyBtn.setFont(Font.font(13));
+        monthlyBtn.setOnAction(e -> {
+            budget.setMultiplier(1);
+            budgetInputTF.setDisable(false);
+        });
+
+        //current balance
+        Text currentIncomeText = new Text("Current income:");
+        currentIncomeText.setFont(Font.font("Verdana", 15));
+        Text incomeValue = new Text("RM " + budget.getIncome());
+        incomeValue.setFont(Font.font("Verdana", 15));
+        VBox currentIncomeBox = new VBox(5);
+        currentIncomeBox.getChildren().addAll(currentIncomeText,incomeValue);
+        currentIncomeBox.setAlignment(Pos.CENTER);
+        currentIncomeBox.setPadding(new Insets(0,0,330,130));
+        //status text
+        Text statusText = new Text();
+
+        //Container for categories
+        VBox categoriesContainer = new VBox(10);
+        categoriesContainer.getChildren().addAll(categoriesLbl, categoriesCB);
+
+        ToggleGroup radioBtn = new ToggleGroup();
+        radioBtn.getToggles().addAll(weeklyBtn, monthlyBtn);
+
+        //container for period input
+        HBox periodContainer = new HBox(10);
+        periodContainer.getChildren().addAll(periodLbl, weeklyBtn, monthlyBtn);
+        periodContainer.setPadding(new Insets(0,0,0,0));
+
+        //container for total budget
+        HBox totalBudgetContainer = new HBox();
+        totalBudgetContainer.setAlignment(Pos.CENTER_LEFT);
+        totalBudgetContainer.setPadding(new Insets(20,0,0,0));
+        totalBudgetContainer.getChildren().addAll(totalBudgetLbl, totalBudgetTf);
+
+        //container for budgetInput
+        VBox budgetInputContainer = new VBox(10);
+        budgetInputContainer.setPadding(new Insets(0,0,0,0));
+        budgetInputContainer.getChildren().addAll(budgetInputLBL, budgetInputTF);
+
+        //back button
+        Button backBtn = createButton("Back", 120, e -> goMainPage(stage));
+        //proceed button
+        Button setBudgetBtn = createButton("Set Budget", 120, e ->{
+            try{
+                String result = budget.proceedValidator();
                 if (result.startsWith("Error:")) {
                     showErrorMessage(result);
                 } else {
                     showInfoMessage(result);
+                    goMainPage(stage);
                 }
-                goMainPage(stage);
             } catch (NumberFormatException ex) {
                 showErrorMessage("Invalid budget value.");
             }
         });
+        HBox buttonContainer = new HBox(10);
+        buttonContainer.getChildren().addAll(backBtn,setBudgetBtn);
+        buttonContainer.setPadding(new Insets(0,0,30,50));
 
-        // Create layout
-        HBox categoryBox = new HBox(10, categoryLabel, categoryComboBox);
-        categoryBox.setAlignment(Pos.CENTER);
-        HBox budgetBox = new HBox(10, budgetLabel, budgetField);
-        budgetBox.setAlignment(Pos.CENTER);
-        HBox periodBox = new HBox(10, periodLabel, periodComboBox);
-        periodBox.setAlignment(Pos.CENTER);
+        //top container
+        HBox topContainer = new HBox();
+        topContainer.setAlignment(Pos.CENTER);
+        topContainer.setMinHeight(70);
+        topContainer.getChildren().addAll(title);
+        topContainer.setAlignment(Pos.CENTER);
 
-        VBox root = new VBox(10, categoryBox, budgetBox, periodBox, setBudgetButton);
-        root.setAlignment(Pos.CENTER);
+        //center leftcontainer
+        VBox centerLeftContainer = new VBox(30);
+        centerLeftContainer.getChildren().addAll(categoriesContainer, periodContainer, budgetInputContainer, totalBudgetContainer, statusText);
+        centerLeftContainer.setPadding(new Insets(20,0,0,30));
+        centerLeftContainer.setStyle("-fx-background-color: rgba(199, 184, 234, 1.0); -fx-background-radius: 30; -fx-padding: 20; -fx-border-width: 5; -fx-border-color: black; -fx-border-radius: 30;");
+        //center right container
+        VBox centerRightContainer = new VBox();
+        centerRightContainer.getChildren().addAll(currentIncomeBox,buttonContainer);
+        centerRightContainer.setAlignment(Pos.BOTTOM_RIGHT);
+        //center container
+        HBox centerContainer = new HBox(centerLeftContainer, centerRightContainer);
 
-        // Display the scene
-        scene = new Scene(root, 600, 300, Color.BLACK);
+        //bottom container
+        HBox bottomContainer = new HBox(20);
+        bottomContainer.setAlignment(Pos.CENTER);
+        //bottomContainer.getChildren().addAll(buttonContainer);
+
+
+        BorderPane root = new BorderPane();
+
+        root.setTop(topContainer);
+        root.setCenter(centerContainer);
+        root.setBottom(bottomContainer);
+        BackgroundImage backgroundImage = new BackgroundImage(backgroundImg,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.DEFAULT,
+                new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, true, true, true, true));
+        root.setBackground (new Background (backgroundImage));
+
+        Scene scene = new Scene(root, 700, 500);
+        stage.setTitle("Budget Planning");
         stage.setScene(scene);
         stage.show();
     }
@@ -414,7 +508,7 @@ public class Main extends Application {
         categoryComboBox.setMinWidth(100);
 
         Label expensesLabel = createLabel("Expenses:", 15, 50);
-        TextField budgetField = createTextField(100);
+        TextField expenseField = createTextField(100);
 
         Label noteLabel = createLabel("Note:", 15, 50);
         TextField noteField = createTextField(100);
@@ -427,7 +521,7 @@ public class Main extends Application {
                 return;
             }
             try {
-                double expensesAmount = Double.parseDouble(budgetField.getText());
+                double expensesAmount = Double.parseDouble(expenseField.getText());
                 String category = categoryComboBox.getValue();
                 String note = noteField.getText();
                 LocalDate date = datePicker.getValue();
@@ -441,7 +535,7 @@ public class Main extends Application {
             }
         });
 
-        HBox box1 = new HBox(10, categoryLabel, categoryComboBox, expensesLabel, budgetField);
+        HBox box1 = new HBox(10, categoryLabel, categoryComboBox, expensesLabel, expenseField);
         box1.setSpacing(20);
         box1.setAlignment(Pos.CENTER);
         HBox box2 = new HBox(10, datePicker, noteLabel, noteField);
@@ -494,7 +588,9 @@ public class Main extends Application {
 
     private Button createButton(String text, double width, EventHandler<ActionEvent> eventHandler) {
         Button button = new Button(text);
-        button.setStyle("-fx-font-size: 14; -fx-text-fill: #FFFFFF; -fx-background-color: #2196F3;");
+        button.setStyle("-fx-font-size: 14; -fx-text-fill: #FFFFFF; -fx-background-color: #7D0DC3;");
+        button.setOnMouseEntered(e-> button.setStyle("-fx-font-size: 14; -fx-text-fill: #FFFFFF; -fx-background-color: #570987;"));
+        button.setOnMouseExited(e -> button.setStyle("-fx-font-size: 14; -fx-text-fill: #FFFFFF; -fx-background-color: #7D0DC3;"));
         button.setMinWidth(width);
         button.setOnAction(eventHandler);
         return button;
@@ -510,48 +606,5 @@ public class Main extends Application {
         msg.setAlertType(Alert.AlertType.INFORMATION);
         msg.setContentText(message);
         msg.show();
-    }
-
-    private void showAnalysisWindows(){
-        var list = readData ("./transhakim.txt");
-        PieChart pieChart = new PieChart();
-
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-
-        for(Expense item : list ){
-            var datum = new PieChart.Data (item.Category,item.Amount);
-            pieChartData.add (datum);
-        }
-        // Create an ObservableList to store the pie chart data
-        pieChart.setData (pieChartData);
-        Scene scene = new Scene (pieChart, 400,400);
-        Stage stage = new Stage ();
-        stage   .setScene (scene);
-        stage.show ();
-    }
-
-    public List<Expense> readData(String FILE_PATH) {
-        if (FILE_PATH == null) return new ArrayList<> ();
-        ArrayList<Expense> expenseArrayList = new ArrayList<> ();
-        try (FileReader reader = new FileReader (FILE_PATH)) {
-            Scanner scanner = new Scanner (reader);
-            while(scanner.hasNextLine ()){
-                var column = scanner.nextLine ().split (",");
-                Expense expense = new Expense ();
-                expense.Amount = Double.parseDouble (column[0]);
-                expense.Category = column[1];
-                expense.Date = column[2];
-                expense.Description = column[3];
-                expenseArrayList.add (expense);
-            }
-
-
-            scanner.close ();
-
-            return expenseArrayList;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<> ();
     }
 }

@@ -20,6 +20,7 @@ public class Transaction {
         createFile(name);
         transactions = new ArrayList<>();
         readDataTrans();
+        System.out.println(transactions);
     }
 
     public Transaction() {
@@ -86,8 +87,8 @@ public class Transaction {
         // Implementation to add the expense to the transaction list or file
         // Example: save to a file or update an in-memory list
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            var id = generateId ();
-            String fmt = String.format("%s,%s,%s,%s,%s", id,amount,category,date,note);
+//            var id = generateId ();
+            String fmt = String.format("%s,%s,%s,%s",amount,category,date,note);
             writer.write(fmt);
             writer.newLine();
         } catch (IOException e) {
@@ -98,13 +99,6 @@ public class Transaction {
     public void editExpense(int index, double value, String category, LocalDate date, String note) {
         if (index >= 0 && index < transactions.size()) {
             transactions.set(index, new TransactionRecord(value, category, date, note));
-            updateFile();
-        }
-    }
-
-    public void deleteExpense(int index) {
-        if (index >= 0 && index < transactions.size()) {
-            transactions.remove(index);
             updateFile();
         }
     }

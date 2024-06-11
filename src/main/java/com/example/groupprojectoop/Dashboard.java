@@ -1,5 +1,8 @@
 package com.example.groupprojectoop;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -11,9 +14,19 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
+
 public class Dashboard {
     private TableView<TransactionRecord> tableView;
     private String passwords;
+    private static String FILE_PATH = null;
+
+    public Dashboard(String name){
+        setFileTrans(name);
+    }
+
+    public void setFileTrans(String name) {
+        FILE_PATH = "trans" + name + ".txt";
+    }
 
     public VBox createDashboard() {
         // Create the table and set its columns
@@ -54,6 +67,7 @@ public class Dashboard {
     }
 
     private static TableColumn<TransactionRecord, Void> getTransactionRecordVoidTableColumn() {
+        BudgetPlanning budget = new BudgetPlanning();
         TableColumn<TransactionRecord, Void> deleteColumn = new TableColumn<>("Delete");
         deleteColumn.setCellFactory(param -> new TableCell<>() {
             private final Button deleteButton = new Button("Delete");
@@ -61,7 +75,21 @@ public class Dashboard {
             {
                 deleteButton.setOnAction(event -> {
                     TransactionRecord record = getTableView().getItems().get(getIndex());
+                    double deletedValue=record.getValue();
+                    budget.updateExpense(deletedValue, record.getCategory());
                     getTableView().getItems().remove(record);
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+
+                        for (TransactionRecord transaction : getTableView().getItems()) {
+                            System.out.println(transaction.toString());
+
+                            writer.write(transaction.toString());
+                            writer.newLine();
+                            System.out.println("DELETED");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                     // You can also add code here to remove the record from your data source
                 });
@@ -97,7 +125,7 @@ public class Dashboard {
     public void setPassword(String password) {
         if (!passwordValidator.isValidPassword(password)) {
             // Display error message to user
-            System.out.println("Invalid password. Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one digit, and one special character.");
+            System.out.println("Invalid password. Password must be at least 8 characters long");
         } else {
             // Set the password
             this.passwords = password;
